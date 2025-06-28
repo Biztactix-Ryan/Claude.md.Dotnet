@@ -172,6 +172,49 @@ dotnet test ... | findstr /I /C:"Failed" /C:"Error Message:" /C:"Stack trace:"
 - Unit tests are in `/src/ProjectName.Tests/`
 - Integration tests in `/tests/IntegrationTests/`
 
+### Test Output Tagging for Easy Filtering
+
+When writing tests, Claude MUST use unique test-specific tags for EACH individual test method to enable precise log filtering:
+
+```csharp
+[Test]
+public void CalculateTotalPrice_WithValidItems_ReturnsCorrectTotal()
+{
+    var testId = "TEST-ORDER-CALC-001";
+    Console.WriteLine($"[{testId}] Starting test execution");
+    
+    try 
+    {
+        // Test logic here
+        Console.WriteLine($"[{testId}] Calculation result: {result}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[{testId}-FAIL] Error: {ex.Message}");
+        throw;
+    }
+}
+
+[Test]
+public void CalculateTotalPrice_WithEmptyCart_ReturnsZero()
+{
+    var testId = "TEST-ORDER-CALC-002";
+    Console.WriteLine($"[{testId}] Starting empty cart test");
+    
+    // Different test with its own unique ID
+    Console.WriteLine($"[{testId}] Result: {result}");
+}
+```
+
+This enables precise failure extraction for specific tests:
+```bash
+# Find all output for a specific test
+dotnet test ... | rg "\[TEST-ORDER-CALC-001" -C 4
+
+# Find only failures for a specific test
+dotnet test ... | rg "\[TEST-ORDER-CALC-002-FAIL\]" -C 4
+```
+
 ### Test Filters
 Claude MAY use `[Category]`, `[Trait]`, or `[TestCategory]` filters:
 ```bash
